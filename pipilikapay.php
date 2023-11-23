@@ -111,39 +111,36 @@ function pipilikapay_payment_url($params)
     $webhookURL= $systemUrl . 'modules/gateways/callback/pipilikapay.php';
     $cancelURL= $systemUrl . 'viewinvoice.php?id=' . $invoiceId;
 
-    $metadata = array(
-        'customerID' => $email,
-        'orderID' => $invoiceId
-    );
 
-    $requestbody = array(
-        'apiKey' => $apiKey,
-        'secretkey' => $secretKey,
-        'amount' => $amount,
-        'fullname' => $fullname,
-        'email' => $email,
-        'successurl' => $callbackURL,
-        'webhookUrl' => $webhookURL,
-        'cancelurl' => $cancelURL,
-        'metadata' => json_encode($metadata)
-    );
-    $url = curl_init("$baseURL/payment/api/create_payment");                     
-    $requestbodyJson = json_encode($requestbody);
+        $metadata = array(
+            'customerID' => $email,
+            'orderID' => $invoiceId
+        );
 
-    $header = array(
-        'Content-Type:application/json'
-    );
+        $data = array(
+            'apiKey' => $apiKey,
+            'secretkey' => $secretKey,
+            'fullname' => $fullname,
+            'email' => $email,
+            'amount' => $amount,
+            'successurl' => $callbackURL,
+            'cancelurl' => $cancelURL,
+            'webhookUrl' => $webhookURL,
+            'metadata' => json_encode($metadata)
+        );
 
-    curl_setopt($url, CURLOPT_HTTPHEADER, $header);
-    curl_setopt($url, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($url, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($url, CURLOPT_POSTFIELDS, $requestbodyJson);
-    curl_setopt($url, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($url, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-    $resultdata = curl_exec($url);
-    curl_close($url);
+        $ch = curl_init("$baseURL/payment/api/create_payment");
 
-    $result =  json_decode($resultdata, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+
     $resultURL = $result['paymentURL'];
 
     header("Location: $resultURL");
